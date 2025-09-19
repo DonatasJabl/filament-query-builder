@@ -3,15 +3,16 @@
 namespace App\Filament\Pages;
 
 use BackedEnum;
+use App\Models\Post;
 use Filament\Pages\Page;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Enums\FiltersLayout;
 use Filament\Tables\Filters\QueryBuilder;
+use Filament\Tables\Filters\QueryBuilder\Constraints\SelectConstraint;
 use Filament\Tables\Filters\QueryBuilder\Constraints\TextConstraint;
 use Filament\Tables\Table;
-use Illuminate\Support\Collection;
 
 class QueryBuilderPage extends Page implements HasTable
 {
@@ -23,20 +24,7 @@ class QueryBuilderPage extends Page implements HasTable
     public function table(Table $table): Table
     {
         return $table
-            ->records(fn (): Collection => collect([
-                1 => [
-                    'title' => 'What is Filament?',
-                    'slug' => 'what-is-filament',
-                ],
-                2 => [
-                    'title' => 'Top 5 best features of Filament',
-                    'slug' => 'top-5-features',
-                ],
-                3 => [
-                    'title' => 'Tips for building a great Filament plugin',
-                    'slug' => 'plugin-tips',
-                ],
-            ]))
+            ->query(Post::query())
             ->columns([
                 TextColumn::make('title'),
                 TextColumn::make('slug'),
@@ -45,7 +33,9 @@ class QueryBuilderPage extends Page implements HasTable
                 QueryBuilder::make()
                     ->constraints([
                         TextConstraint::make('title'),
-                        TextConstraint::make('slug'),
+                        SelectConstraint::make('slug')
+                            ->options(fn () => Post::pluck('slug', 'slug'))
+                            ->multiple(),
                     ])
                     ->constraintPickerColumns(3),
             ], FiltersLayout::AboveContent);
